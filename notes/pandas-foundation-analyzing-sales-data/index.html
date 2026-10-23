@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>คำสั่งพื้นฐาน Pandas สำหรับ Analyzing Sales Data | Kong</title>
+<meta name="description" content="The core pandas commands I use to analyze sales data, with examples. Written in Thai.">
+<meta name="theme-color" content="#E8EDE9">
+<link rel="canonical" href="https://datakhonnuea.com/notes/pandas-foundation-analyzing-sales-data/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2315241F'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23F2C230'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Literata:wght@400;600&family=Noto+Serif+Thai:wght@400;600&family=Noto+Sans+Thai:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/notes/notes.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="wrap">
+  <header class="site-header">
+    <a class="mark" href="/">Kong</a>
+    <nav class="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="/#work">Work</a></li>
+        <li><a href="/#how">How I work</a></li>
+        <li><a href="/notes/" aria-current="page">Notes</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="content">
+    <article class="post">
+      <p class="back"><a href="/notes/">&larr; All notes</a></p>
+      <h1>คำสั่งพื้นฐาน Pandas สำหรับ Analyzing Sales Data</h1>
+      <p class="byline"><time datetime="2024-05-11">11 May 2024</time></p>
+      <div class="post-body">
+<p>สวัสดีครับ วันนี้ผมจะมาเขียน Blog เกี่ยวกับตัวอย่างโค้ด ที่ใช้สำหรับ manipulate ด้วย pandas กันครับ เพื่อเก็บไว้ดูย้อนหลังด้วยตัวเอง หรือว่าให้เพื่อนๆ ที่แวะเข้ามาดูกันครับ</p>
+
+
+
+<p>Pandas คืออะไร? Pandas คือ library  ที่เราสามารถใช้งานกับ structure data หรือว่า data ที่มีประกอบไปด้วย row และ column เช่น Table ใน Spreadsheet Excel, Google Sheet</p>
+
+
+
+<p>ผมจะไม่สาธิตวิธี install pandas หรือ ติดตั้งนะครับ เพราะคิดว่าทุกๆ คนสามารถทำได้อย่างแน่นอน หรือหากถ้าสงสัยสามารถคลิกได้ที่ ลิงค์นี้โลด</p>
+
+
+
+<p>ซึ่ง มาเริ่มกันเลย</p>
+
+
+
+<h4>import pandas and read csv</h4>
+
+
+
+<pre><code>import pandas as pd
+df = pd.read_csv("store/sample-store.csv")</code></pre>
+
+
+
+<h3>ทำความเข้าใจข้อมูลที่อยู่ตรงหน้า</h3>
+
+
+
+<p>function <code><strong>head()</strong></code> ในตัวอย่างนี้ จะโชว์ผลลัพธ์ 10 แถวบนแรกของ data frame ครับ</p>
+
+
+
+<pre><code>df.head(10)</code></pre>
+
+
+
+<p>หรือถ้าหากต้องการโชว์ 10 แถวล่างสุดท้ายสามารถทำได้โดยใช้ function <code><strong><kbd>tail</kbd>()</strong></code></p>
+
+
+
+<pre><code>df.tail(10)</code></pre>
+
+
+
+<p>หรือถ้าต้องการแสดงจำนวน Column และ Row สามารถทำได้โดยใช้ <code><strong>shape</strong></code></p>
+
+
+
+<pre><code>df.shape</code></pre>
+
+
+
+<p>อีก function นึงที่น่าสนใจมากก็คือ <code>info()</code> คือ method หรือก็คือ function ที่สร้างมาโดย object ใน concept OOP(Object Oriented Programming) ส่วนตัวมองว่ามีประโยชน์มากๆ เนื่องจากแสดงผลทั้งจำนวน row, ชื่อ columns, Data type, จำนวน row</p>
+
+
+
+<pre><code>df.info()</code></pre>
+
+
+
+<figure><img src="/notes/images/70-image.png" alt="" width="504" height="472" loading="lazy"></figure>
+
+
+
+<h4>recheck missing values</h4>
+
+
+
+<p>ใช้ function <code><strong>isna()</strong></code> ในการเช็คว่า value ในคอลัมณ์ไหนที่มี missing values บ้าง แล้วเราใช้ <code><strong>sum()</strong></code> ในการรวมคอลัมณ์ที่มี missing values</p>
+
+
+
+<pre><code>null_table = df.isna().sum()
+null_table</code></pre>
+
+
+
+<h3>จัดการกับวันที่</h3>
+
+
+
+<p>function ที่ใช้จัดการกับวันที่ ผมใช้ function <code><strong>to_datetime</strong></code> ครับ</p>
+
+
+
+<figure><img src="/notes/images/70-image-1.png" alt="" width="957" height="176" loading="lazy"></figure>
+
+
+
+<p>ซึ่ง aguement จะใช้ format date เดิมของวันที่เพื่อนๆ ดังนั้นใช้สังเกตโครงสร้างของวันที่ใน table ของตัวเองก่อนนะครับ</p>
+
+
+
+<p><strong>ตัวอย่าง เช่น</strong> format date แบบเดิมเราคือ 1/23/2019 หรือ เดือน/วัน/ปี ให้เราใส่ format <code>'%m/%d/%Y'</code></p>
+
+
+
+<p>ซึ่ง output หน้าตาจะได้ออกมาเป็นแบบนี้ครับ และเราจะสามารถจัดการกับ date ได้ง่ายขึ้นครับ</p>
+
+
+
+<figure><img src="/notes/images/70-image-2.png" alt="" width="308" height="250" loading="lazy"></figure>
+
+
+
+<h3>Data Analysis Part</h3>
+
+
+
+<p>Part นี้จะเป็น Part ที่ผม Analyst ข้อมูล โดยใช้ Python Pandas library ครับ</p>
+
+
+
+<h4>1. Your friend ask for&nbsp;California&nbsp;data, filter it and export csv for him</h4>
+
+
+
+<p>วิธีที่ผมทำก็คือ </p>
+
+
+
+<ol>
+<li>import csv เพื่อ export csv</li>
+
+
+
+<li>Select Column ที่เป็น California</li>
+
+
+
+<li>ใช้ function to_csv เพื่อบันทึกและส่งต่อให้เพื่อน</li>
+</ol>
+
+
+
+<pre><code>import csv
+California_data = df&#091;df&#091;'State'] == "California"]
+df.to_csv("store/California_data.csv")</code></pre>
+
+
+
+<h4>2. your friend ask for all order data in&nbsp;California&nbsp;and&nbsp;Texas&nbsp;in 2017 (look at Order Date), send him csv file</h4>
+
+
+
+<ul>
+<li>Select <strong>Order Date </strong>and transform to <strong>format date</strong></li>
+</ul>
+
+
+
+<pre><code>df&#091;'Order Date'] = pd.to_datetime(df&#091;'Order Date'], format='%m/%d/%Y')</code></pre>
+
+
+
+<ul>
+<li>Filter <strong>California </strong>and <strong>Texas </strong>in <strong>State</strong> Column</li>
+</ul>
+
+
+
+<pre><code>cari_and_texas = df&#091;(df&#091;"State"] == 'California') | (df&#091;"State"] == 'Texas')]</code></pre>
+
+
+
+<ul>
+<li>Filter <strong>Year == 2017</strong> และฝากไว้ที่ตัวแปร filter_cari_and_texas</li>
+</ul>
+
+
+
+<pre><code>filter_cari_and_texas = cari_and_texas&#091;cari_and_texas&#091;'Order Date'].dt.strftime('%Y') == '2017']</code></pre>
+
+
+
+<ul>
+<li>ใช้ function to_csv เพื่อบันทึกและส่งต่อให้เพื่อน</li>
+</ul>
+
+
+
+<pre><code>filter_cari_and_texas.to_csv("store/filter_cari_and_texas.csv")</code></pre>
+
+
+
+<h4>3. how much total sales, average sales, and standard deviation of sales your company make in 2017</h4>
+
+
+
+<ul>
+<li>filter <strong>Order Date</strong> year == 2017 และฝากไว้ที่ตัวแปร <code>sale_com</code></li>
+</ul>
+
+
+
+<ol>
+<li></li>
+</ol>
+
+
+
+<figure><img src="/notes/images/70-image-3.png" alt="" width="669" height="130" loading="lazy"></figure>
+
+
+
+<pre><code>sale_com = df&#091;pd.to_datetime(df&#091;'Order Date'], format='%m/%d/%Y').dt.strftime('%Y') == '2017']</code></pre>
+
+
+
+<ul>
+<li>หาค่า sum, mean, standard deviation
+<ul>
+<li><code>round</code> ใช้สำหรับปรับจุดทศนิยมให้เหลือ 2 ตัว</li>
+
+
+
+<li><code>agg</code> เป็น method ที่ไว้สำหรับหาค่าสถิติจากคอลัมณ์ที่เราเลือก</li>
+
+
+
+<li><code>transpose()</code> สลับแกนจากคอลัมณ์เป็น row จาก row เป็นคอลัมณ์</li>
+</ul>
+</li>
+</ul>
+
+
+
+<pre><code>sale_com = round(sale_com&#091;&#091;"Sales", "Profit"]].agg(&#091;"sum", "mean", "std"]),ndigits = 2).transpose()</code></pre>
+
+
+
+<h4>4. which Segment has the highest profit in 2018</h4>
+
+
+
+<ul>
+<li>filter year == 2018 และฝากไว้ที่ตัวแปร profit_seg</li>
+</ul>
+
+
+
+<pre><code>profit_seg = df&#091;pd.to_datetime(df&#091;'Order Date'], format='%m/%d/%Y').dt.strftime('%Y') == '2018']</code></pre>
+
+
+
+<ul>
+<li>group by เพื่อหา segment ที่เยอะที่สุด</li>
+</ul>
+
+
+
+<pre><code>profit_seg.groupby("Segment")&#091;'Profit'].agg("sum").reset_index()</code></pre>
+
+
+
+<figure><img src="/notes/images/70-image-4.png" alt="" width="435" height="168" loading="lazy"></figure>
+
+
+
+<h4>4. which top 5 States have the least total sales between 15 April 2019 &#8211; 31 December</h4>
+
+
+
+<ul>
+<li>เลือก date
+<ul>
+<li>ใช้ method between เพื่อเลือกวันที่ 2019-04-15 ถึงวันที่ 2019-12-31 และฝากไว้ที่ตัวแปร least_sale</li>
+</ul>
+</li>
+</ul>
+
+
+
+<pre><code>least_sale = df&#091;pd.to_datetime(df&#091;'Order Date'], format='%m/%d/%Y')\
+    .dt.strftime('%Y-%m-%d').between('2019-04-15', '2019-12-31')]</code></pre>
+
+
+
+<ul>
+<li> sum column Sales และ group by ด้วย column State</li>
+</ul>
+
+
+
+<pre><code>least_sale = least_sale.groupby('State')&#091;'Sales'].agg("sum")</code></pre>
+
+
+
+<ul>
+<li>sort acesending order เพื่อหายอดขายที่น้อยที่สุด 5 อันดับแรก และ function <code>reset_index()</code> เพื่อ เปลี่ยน row name state ให้อยู่ในรูปแบบ column</li>
+</ul>
+
+
+
+<pre><code>least_sale.sort_values().head(5).reset_index()</code></pre>
+
+
+
+<figure><img src="/notes/images/70-image-6.png" alt="" width="439" height="253" loading="lazy"></figure>
+
+
+
+<h4>5. what is the proportion of total sales (%) in West + Central in 2019</h4>
+
+
+
+<ul>
+<li>filter year == 2019</li>
+</ul>
+
+
+
+<pre><code>prop_sale = df&#091;pd.to_datetime(df&#091;'Order Date'], format='%m/%d/%Y').dt.strftime('%Y') == '2019']</code></pre>
+
+
+
+<ul>
+<li>find total sales ทั้งหมด และ total sale ของ region ฝากไว้ที่ตัวแปร prop_sale_w_r เพื่อนำมาเปรียบเทียบกัน </li>
+</ul>
+
+
+
+<pre><code>total_sales_w_r = prop_sale&#091;'Sales'].sum()
+prop_sale_w_r = round(prop_sale.groupby('Region')&#091;'Sales'].agg('sum').reset_index(),ndigits=2)</code></pre>
+
+
+
+<ul>
+<li>สร้าง column ใหม่ชื่อว่า Propotion และเพิ่ม value จากการคำนวน propotion ของแต่ละ Region West + Central</li>
+</ul>
+
+
+
+<pre><code>prop_sale_w_r&#091;'Propotion'] = round(prop_sale_w_r&#091;'Sales'] / total_sales_w_r * 100, ndigits=2)</code></pre>
+
+
+
+<ul>
+<li>filter Region == West + Central</li>
+</ul>
+
+
+
+<pre><code>prop_sale_w_r = prop_sale_w_r&#091;(prop_sale_w_r&#091;'Region'] == 'West') | (prop_sale_w_r&#091;'Region'] == 'Central')]</code></pre>
+
+
+
+<figure><img src="/notes/images/70-image-7.png" alt="" width="630" height="127" loading="lazy"></figure>
+
+
+
+<h4>6. find top 10 popular products in terms of number of orders vs. total sales during 2019-2020</h4>
+
+
+
+<ul>
+<li>เลือกข้อมูลที่เป็น year 2019 และ 2020</li>
+</ul>
+
+
+
+<pre><code>top_sale = df&#091;pd.to_datetime(df&#091;'Order Date'], format='%m/%d/%Y').dt.strftime('%Y').between('2019', '2020')]</code></pre>
+
+
+
+<ul>
+<li>sum และ count Column Sales และ reset_index() เพื่อสามารถนำข้อมูลไปใช้งานต่อ</li>
+</ul>
+
+
+
+<pre><code>top_sale = top_sale.groupby('Product Name')&#091;'Sales'].agg(&#091;'count', 'sum']).reset_index()</code></pre>
+
+
+
+<ul>
+<li>rename column และ sort data</li>
+</ul>
+
+
+
+<pre><code>top_sale = top_sale.rename({'Product Name':'Prodcut Name', 'count':'Count Orders', 'sum':'Sum Sales'}, axis = 'columns')\
+    .sort_values(&#091;'Sum Sales', 'Count Orders'],ascending = False)\
+        .head(10)</code></pre>
+
+
+
+<figure><img src="/notes/images/70-image-5.png" alt="" width="885" height="457" loading="lazy"></figure>
+
+
+
+<p>สรุป</p>
+
+
+
+<p>Part Data Analyst คือ Part ที่ผมใช้คำสั่งของ Pandas ในการ manipulate data เพื่อสามารถหา insight จากข้อมูลได้</p>
+
+
+
+<p>ขอบคุณสำหรับทุกๆ คนที่สนใจนะครับ</p>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 Kongpop, Bangkok</p>
+  </footer>
+</div>
+</body>
+</html>

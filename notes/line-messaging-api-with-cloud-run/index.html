@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Line Messaging API with Cloud Run | Kong</title>
+<meta name="description" content="Building a LINE bot from localhost to Google Cloud Run: Messaging API, ngrok for testing, and deployment. Written in Thai.">
+<meta name="theme-color" content="#E8EDE9">
+<link rel="canonical" href="https://datakhonnuea.com/notes/line-messaging-api-with-cloud-run/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2315241F'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23F2C230'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Literata:wght@400;600&family=Noto+Serif+Thai:wght@400;600&family=Noto+Sans+Thai:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/notes/notes.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="wrap">
+  <header class="site-header">
+    <a class="mark" href="/">Kong</a>
+    <nav class="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="/#work">Work</a></li>
+        <li><a href="/#how">How I work</a></li>
+        <li><a href="/notes/" aria-current="page">Notes</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="content">
+    <article class="post">
+      <p class="back"><a href="/notes/">&larr; All notes</a></p>
+      <h1>Line Messaging API with Cloud Run</h1>
+      <p class="byline"><time datetime="2025-10-26">26 Oct 2025</time></p>
+      <div class="post-body">
+<p>เรื่องมันมีอยู่ว่า ผมได้เจอโจทย์ทางธุรกิจ ที่เราไม่สามารถรู้ได้เลยว่า <strong>สินค้า Inbound เข้าคลังสินค้าของเราตอนไหน</strong>แล้ว นั่นจึงเป็นเหตุผลที่ผมอยากมาทำ Line Messaging มาบอกผู้ใช้ตอนที่ของเข้า</p>
+
+
+
+<p>ในบทความนี้ผมอาจจะไม่ได้จับมือทำ Step-by-Step เลย เพียงแค่ถ่ายทอดสิ่งที่ได้ทำมา ว่าทำอะไรมาบ้างเท่านั้นนะครับ ขออนุญาต เริ่มเลยแล้วกัน</p>
+
+
+
+<p>เนื่องจาก LINE มี <strong>LINE Messaging API</strong> ที่เปิดให้เราสร้างบอทได้ฟรี<br>เลยคิดว่าเป็นโอกาสดีที่จะลองทำโปรเจกต์ ตั้งแต่เขียนโค้ดบน <strong>localhost</strong>, ทดสอบด้วย <strong>ngrok</strong>, ไปจนถึง deploy ขึ้น <strong>Cloud Run</strong> ของ Google Cloud</p>
+
+
+
+<h4>เป้าหมายของโปรเจกต์:</h4>
+
+
+
+<ul>
+<li>อยากสร้าง LINE Bot ง่าย ๆ ที่รับข้อความจากผู้ใช้ แล้วตอบกลับข้อความนั้นตามเงื่อนไขที่ผู้ใช้ส่งมา แบบอัตโนมัติ (“echo bot”) ซึ่งสามารถต่อยอดไปถึงโจทย์ที่ผมอยากทำได้</li>
+</ul>
+
+
+
+<h4>เครื่องมือที่ใช้</h4>
+
+
+
+<ul>
+<li>LINE Messaging API</li>
+
+
+
+<li>FastAPI</li>
+
+
+
+<li>ngrok</li>
+
+
+
+<li>Cloud Run</li>
+
+
+
+<li>Python</li>
+</ul>
+
+
+
+<h4>Library สำหรับการพัฒนาในครั้งนี้</h4>
+
+
+
+<p>จริงๆ ดูไฟล์ใน requirements.txt ก็ได้นะครับ แต่ผมจะนำมาใส่ในนี้ด้วย เพราะเห็น Blog อื่นๆ เค้าก็ใส่กันเยอะดี</p>
+
+
+
+<ul>
+<li>fastapi</li>
+
+
+
+<li>line-bot-sdk</li>
+
+
+
+<li>uvicorn</li>
+
+
+
+<li>python-dotenv</li>
+</ul>
+
+
+
+<h4>สิ่งที่ได้เรียนรู้</h4>
+
+
+
+<ul>
+<li>สิ่งที่ผมได้เรียนรู้คือ ทักษะการออกแบบของการดึง Secret Manager เราจะไม่ใช้ Python ในการดึง secret manager แต่จะฉีด secret key ต่างๆ ไว้ตอน deploy เลย เนื่องจาก ถ้าใช้ python ในการดึง secret แบบนี้ ทุกครั้งที่มีคนทักมาหา line bot จะถูกเรียก API 1 ครั้ง ซึ่งทั้งช้าและเสีย limit รอบในการดึงแต่ละครั้ง ถึงแม้ว่าข้อดีของมันจะมีความปลอดภัยสูงก็ตาม ดังนั้นการฉีด secret key เข้า cloudrun โดยตรงเลยจะเหมาะกับ use case ของ LINE Bot มากกว่า</li>
+
+
+
+<li>การสร้าง Webhook บน Cloud Run ที่รอรับ Event จาก Line API จากข้อความที่ผู้ใช้ส่งมาให้</li>
+</ul>
+
+
+
+<h3>Environment Setup</h3>
+
+
+
+<ul>
+<li>สิ่งที่ต้องมีบนเครื่องของเราก็คือ ngrok ถ้าใครไม่มีไปติดตั้งก่อน</li>
+
+
+
+<li>Python</li>
+
+
+
+<li>สมัครใช้บริการ Google Cloud Platform ให้เรียบร้อย</li>
+
+
+
+<li>สร้าง LINE Developer Account และ LINE Official Account สำหรับทดสอบให้เรียบร้อย</li>
+</ul>
+
+
+
+<h3>Development on Localhost</h3>
+
+
+
+<ul>
+<li>สร้างโปรเจกต์เบื้องต้น และสร้าง Virtual Environment สำหรับพัฒนาโปรเจคก์นี้</li>
+
+
+
+<li>สำหรับโค้ดต่างๆ ผม push ไว้บน Github เรียบร้อยแล้ว หากใครสนใจก็เข้าไปดูได้ที่<a href="https://github.com/Kongpop-2543/linebot-dev-python-fastapi" rel="noopener">ลิงค์นี้</a></li>
+
+
+
+<li>หลังจากโค้ดของผมเขียนเสร็จแล้ว ผมก็จะรันและทดสอบบน localhost ด้วยคำสั่ง</li>
+</ul>
+
+
+
+<pre><code>uvicorn main:app --host 0.0.0.0 --port 8080</code></pre>
+
+
+
+<ul>
+<li>จากนั้นเปิดอีกเทอร์มินัล เพื่อ forward Port ของผมไปบนเว็บไซต์ให้ Line สามารถส่ง API มาหาเราได้</li>
+</ul>
+
+
+
+<pre><code>ngrok http 8080</code></pre>
+
+
+
+<ul>
+<li>หลังจากที่ ngrok สร้าง public url ให้กับเราแล้ว เราจะ Copy Url นี้ไปวางไว้บน LINE Developers Console → <strong>Webhook URL</strong></li>
+
+
+
+<li>กด “Verify” → ถ้าโชว์ “Success!” แปลว่าสามารถส่งข้อความตอบกลับไปหา User สำเร็จแล้ว 🎉 </li>
+
+
+
+<li>รูปภาพปลากรอบ</li>
+</ul>
+
+
+
+<figure><img src="/notes/images/250-image-1.png" alt="" width="1024" height="487" loading="lazy"></figure>
+
+
+
+<h3>การเตรียมสำหรับ Deploy (Pre-deployment)</h3>
+
+
+
+<p>หลังจากที่พัฒนาเสร็จแล้ว ก็ทำการสร้าง Dockerfile ขึ้นมาอีก 1 ไฟล์ ใช้สำหรับ Deploy กับ Cloudrun ซึ่งนั่นแหละครับ! โค้ดอยู่บน Github เช่นเดิม</p>
+
+
+
+<p>หลังจากมี Dockerfile แล้ว ผมก็ทำการ build image เพื่อทดสอบผ่าน Docker Desktop ก่อน ภาษาทางเทคนิค เค้าเรียกอะไรนะ CI/CD</p>
+
+
+
+<p>หลังจากผ่านแล้วผมก็ทำการ push โค้ดของผมไว้บน Gitgub Repository เลยและไปต่อกันใน part Deploy Cloud Run!</p>
+
+
+
+<h3>☁️ การ Deploy ขึ้น Cloud Run</h3>
+
+
+
+<ol>
+<li>ก่อนจะเริ่ม อย่าลืมว่าต้องมีบัญชี Google Cloud ก่อน และ enabled API ที่เกี่ยวข้องสำหรับ Project นี้ด้วยครับ Part นี้ไม่ยาก เพราะสิ่งที่เราต้องทำมีแค่</li>
+</ol>
+
+
+
+<ul>
+<li>เลือก service</li>
+
+
+
+<li>หลังจากเลือก GCP จะเด้งหน้าต่าง pop-up มาให้เรากด enabled ก็เป็นอันเสร็จ</li>
+</ul>
+
+
+
+<p>2. หลังจาก enabled เรียบร้อยแล้ว เราก็ทำการสร้าง Secret Manager และให้สิทธ์ access secret manager ใน Service Account ที่ทาง Cloud Run สร้างมาให้เรา</p>
+
+
+
+<p>3. หลังจากนั้นก็สร้าง Cloud Run ได้เลยครับ อย่าลืมว่าต้องฉีด Environment Variable ตอนสร้างด้วยจะได้ไม่ต้องไปรบกวน Python ยิง API ไปหา secret manager ทุกรอบ</p>
+
+
+
+<h3>Error List ที่เจอใน Project นี้</h3>
+
+
+
+<p>แน่นอนว่า จะต้องเจอ Error กันแน่นอนอยู่แล้วตอนพัฒนา แต่ว่าพอเจอแล้ว เราสามารถแก้ไขปัญหามันได้ไหม นั่นต่างหากที่สำคัญ</p>
+
+
+
+<p>ซึ่ง Error ที่เจอได้แก่</p>
+
+
+
+<h5>SSL Certificate Verification Failed</h5>
+
+
+
+<ul>
+<li>SSL Certificate Verification Failed อันนี้เป็น Error ตอนที่จะส่งข้อความตอบกลับไปหา User เกิดขึ้นเกิดจาก python บน macos ไม่มี root certificates หรือ CA bundle ติดตั้งอยู่ในเครื่อง ทำให้ไม่สามารถส่งข้อความตอบกลับไปยัง LineServer ได้</li>
+</ul>
+
+
+
+<p>ซึ่งวิธีการแก้ปัญหาของผมคือ</p>
+
+
+
+<p>พิมพ์คำสั่งนี้ไปบน terminal คือการ 🔧 ติดตั้ง “ใบรับรองความปลอดภัย (SSL Certificates)” ให้ Python บน macOS</p>
+
+
+
+<pre><code>/Applications/Python\ 3.11/Install\ Certificates.command</code></pre>
+
+
+
+<h5>Cloud Run Build Error (Build Process)</h5>
+
+
+
+<p>Error ที่เจออาจจะเดาได้ว่าเกิดจาก Port Cloud Run Container ไม่สามารถ start ได้ภายในเวลาที่กำหนด ซึ่งพอถามต่อว่าทำไม ก็เพราะว่า Cloud Run ไม่สามารถดึง Secret ได้ ซึ่งพอถามต่อว่าทำไม ก็เพราะว่า ผมไม่ได้กำหนด Environment Variable ให้ Cloud Run ระบบจึงไม่รู้ว่าจะต้องไปดึงจากไหนจนหมดเวลานั่นเอง</p>
+
+
+
+<p>สรุปก็คือ : แอปตายระหว่างสตาร์ทเพราะ secret ไม่ได้ค่า → เลยไม่ทันเปิดพอร์ต</p>
+
+
+
+<p>ซึ่งวิธีการแก้ปัญหาของผมคือ</p>
+
+
+
+<ul>
+<li>ให้ Service Account access สำหรับเข้าถึง <strong>Secret Manager Secret Accessor Role</strong></li>
+
+
+
+<li>ฉีด Environment Variable เข้าไปตอน Build Cloud Run</li>
+</ul>
+
+
+
+<p></p>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 Kongpop, Bangkok</p>
+  </footer>
+</div>
+</body>
+</html>
