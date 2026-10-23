@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kong | Data pipelines and integrations</title>
+<meta name="description" content="Kong is an IT coordinator in Bangkok building toward data engineering: marketplace integrations, Python jobs on Cloud Run, BigQuery and Looker Studio dashboards.">
+<meta name="theme-color" content="#E8EDE9">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2315241F'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23F2C230'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Literata:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #E8EDE9;
+    --ink: #15241F;
+    --muted: #4F5F59;
+    --pipe: #0B6B63;
+    --label: #F2C230;
+    --rule: #B7C4BD;
+    --display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --text: "Literata", Georgia, "Times New Roman", serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--text);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  a { color: var(--pipe); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  a:hover { color: var(--ink); }
+  a:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 2px; }
+
+  .skip {
+    position: absolute; left: 16px; top: -64px;
+    background: var(--ink); color: var(--paper);
+    font: 500 1rem var(--display);
+    padding: 10px 16px; border-radius: 6px; text-decoration: none;
+  }
+  .skip:focus { top: 16px; color: var(--paper); }
+
+  /* Header */
+  .site-header { display: flex; justify-content: space-between; align-items: baseline; padding: 28px 0; }
+  .mark { font: 700 1.375rem/1 var(--display); letter-spacing: -0.02em; color: var(--ink); text-decoration: none; }
+  .site-nav ul { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; }
+  .site-nav a {
+    font: 500 1rem var(--display);
+    color: var(--ink); text-decoration: none;
+    border-bottom: 2px solid transparent; padding-bottom: 2px;
+  }
+  .site-nav a:hover { border-bottom-color: var(--pipe); }
+
+  /* Hero */
+  .hero { padding: clamp(32px, 7vw, 88px) 0 clamp(48px, 7vw, 80px); }
+  .hero h1 {
+    font: 700 clamp(2.4rem, 10vw, 7rem)/0.95 var(--display);
+    letter-spacing: -0.035em;
+    margin: 0;
+  }
+  .hero h1 span { display: block; }
+  .lede { max-width: 56ch; font-size: 1.2rem; margin: 28px 0 0; }
+
+  .flow { margin: clamp(40px, 6vw, 64px) 0 0; }
+  .flow svg { display: block; width: 100%; height: auto; }
+  .flow-v { display: none; }
+  @media (max-width: 860px) {
+    .flow-h { display: none; }
+    .flow-v { display: block; max-width: 420px; margin: 0 auto; }
+  }
+
+  .edge { fill: none; stroke: var(--pipe); stroke-width: 2.5; }
+  .arrowhead { fill: var(--pipe); }
+  .join { fill: var(--pipe); }
+  .node rect { fill: var(--paper); stroke: var(--ink); stroke-width: 1.75; }
+  .node .label { font: 700 15.5px var(--display); fill: var(--ink); text-anchor: middle; }
+  .node .cap { font: 400 13px var(--display); fill: var(--muted); text-anchor: middle; }
+  .node.source .label { font-weight: 500; font-size: 15px; }
+  .flow-v .node.source .label { font-size: 13px; }
+  .node.end .cap { fill: var(--ink); }
+  .packet { fill: var(--label); stroke: var(--ink); stroke-width: 2; }
+
+  /* The one moment of motion: the packet arrives and the last node lights up. */
+  .node.end rect { animation: arrive 0.35s 4.15s forwards; }
+  @keyframes arrive { to { fill: var(--label); } }
+  @media (prefers-reduced-motion: reduce) {
+    .packet { display: none; }
+    .node.end rect { animation: none; fill: var(--label); }
+  }
+
+  /* Sections */
+  .section { padding: clamp(40px, 6vw, 72px) 0; border-top: 1px solid var(--rule); }
+  .cols { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); gap: 24px 48px; }
+  @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+  .section h2 { font: 700 1.5rem/1.2 var(--display); letter-spacing: -0.01em; margin: 0; }
+
+  .project + .project { margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--rule); }
+  .project h3 { font: 700 1.3rem/1.25 var(--display); letter-spacing: -0.01em; margin: 0 0 8px; }
+  .project p { margin: 0 0 10px; max-width: 64ch; }
+  .project .tools { font: 500 0.95rem/1.5 var(--display); color: var(--muted); margin: 0; }
+
+  .prose { margin: 0; max-width: 62ch; }
+
+  .toolbox { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 14px 32px; }
+  .toolbox dt { font: 600 1rem/1.7 var(--display); }
+  .toolbox dd { margin: 0; }
+  @media (max-width: 760px) {
+    .toolbox { grid-template-columns: 1fr; gap: 2px; }
+    .toolbox dd { margin-bottom: 14px; }
+  }
+
+  .contact-links { display: flex; flex-wrap: wrap; gap: 8px 28px; list-style: none; margin: 20px 0 0; padding: 0; }
+  .contact-links a { font: 500 1.1rem var(--display); }
+
+  .site-footer { padding: 32px 0 56px; border-top: 1px solid var(--rule); color: var(--muted); font: 400 0.9rem var(--display); }
+  .site-footer p { margin: 0; }
+</style>
+</head>
+<body>
+<a class="skip" href="#work">Skip to content</a>
+
+<div class="wrap">
+  <header class="site-header">
+    <a class="mark" href="#top">Kong</a>
+    <nav class="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="#work">Work</a></li>
+        <li><a href="#how">How I work</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <h1><span>Orders in.</span> <span>Dashboards out.</span></h1>
+      <p class="lede">I'm Kong, an IT coordinator in Bangkok, building toward data engineering. I connect marketplaces to the order system, load the data into BigQuery with Python jobs on Cloud Run, and put it in front of the business in Looker Studio.</p>
+
+      <figure class="flow">
+        <!-- Wide layout -->
+        <svg class="flow-h" viewBox="0 0 1040 320" role="img" aria-label="Data flow: Shopify, Shopee, Lazada and TikTok Shop orders go into Mycloud OMS, then Cloud Run Jobs load them into BigQuery, and Looker Studio shows the dashboards.">
+          <defs>
+            <marker id="arrow-h" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0 0 L10 5 L0 10 z"/></marker>
+          </defs>
+          <g class="edge">
+            <path d="M160 40 H230"/>
+            <path d="M160 120 H230"/>
+            <path d="M160 200 H230"/>
+            <path d="M160 280 H230"/>
+            <path d="M230 40 V280"/>
+            <path d="M230 160 H288" marker-end="url(#arrow-h)"/>
+            <path d="M440 160 H488" marker-end="url(#arrow-h)"/>
+            <path d="M640 160 H688" marker-end="url(#arrow-h)"/>
+            <path d="M840 160 H888" marker-end="url(#arrow-h)"/>
+          </g>
+          <circle class="join" cx="230" cy="160" r="4.5"/>
+          <circle class="packet" r="7" cx="0" cy="0" opacity="0">
+            <set attributeName="opacity" to="1" begin="0.6s" fill="freeze"/>
+            <animateMotion dur="3.6s" begin="0.6s" fill="freeze" calcMode="linear" path="M160 40 H230 V160 H905"/>
+          </circle>
+
+          <g class="node source"><rect x="10" y="20" width="150" height="40" rx="9"/><text class="label" x="85" y="45">Shopify</text></g>
+          <g class="node source"><rect x="10" y="100" width="150" height="40" rx="9"/><text class="label" x="85" y="125">Shopee</text></g>
+          <g class="node source"><rect x="10" y="180" width="150" height="40" rx="9"/><text class="label" x="85" y="205">Lazada</text></g>
+          <g class="node source"><rect x="10" y="260" width="150" height="40" rx="9"/><text class="label" x="85" y="285">TikTok Shop</text></g>
+
+          <g class="node"><rect x="290" y="128" width="150" height="64" rx="10"/><text class="label" x="365" y="156">Mycloud OMS</text><text class="cap" x="365" y="177">order system</text></g>
+          <g class="node"><rect x="490" y="128" width="150" height="64" rx="10"/><text class="label" x="565" y="156">Cloud Run Jobs</text><text class="cap" x="565" y="177">Python, Docker</text></g>
+          <g class="node"><rect x="690" y="128" width="150" height="64" rx="10"/><text class="label" x="765" y="156">BigQuery</text><text class="cap" x="765" y="177">SQL warehouse</text></g>
+          <g class="node end"><rect x="890" y="128" width="140" height="64" rx="10"/><text class="label" x="960" y="156">Looker Studio</text><text class="cap" x="960" y="177">dashboards</text></g>
+        </svg>
+
+        <!-- Narrow layout -->
+        <svg class="flow-v" viewBox="0 0 360 486" role="img" aria-label="Data flow: Shopify, Shopee, Lazada and TikTok Shop orders go into Mycloud OMS, then Cloud Run Jobs load them into BigQuery, and Looker Studio shows the dashboards.">
+          <defs>
+            <marker id="arrow-v" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0 0 L10 5 L0 10 z"/></marker>
+          </defs>
+          <g class="edge">
+            <path d="M48 46 V88"/>
+            <path d="M136 46 V88"/>
+            <path d="M224 46 V88"/>
+            <path d="M312 46 V88"/>
+            <path d="M48 88 H312"/>
+            <path d="M180 88 V124" marker-end="url(#arrow-v)"/>
+            <path d="M180 184 V222" marker-end="url(#arrow-v)"/>
+            <path d="M180 282 V320" marker-end="url(#arrow-v)"/>
+            <path d="M180 380 V418" marker-end="url(#arrow-v)"/>
+          </g>
+          <circle class="join" cx="180" cy="88" r="4.5"/>
+          <circle class="packet" r="7" cx="0" cy="0" opacity="0">
+            <set attributeName="opacity" to="1" begin="0.6s" fill="freeze"/>
+            <animateMotion dur="3.6s" begin="0.6s" fill="freeze" calcMode="linear" path="M48 46 V88 H180 V440"/>
+          </circle>
+
+          <g class="node source"><rect x="8" y="8" width="80" height="38" rx="8"/><text class="label" x="48" y="32">Shopify</text></g>
+          <g class="node source"><rect x="96" y="8" width="80" height="38" rx="8"/><text class="label" x="136" y="32">Shopee</text></g>
+          <g class="node source"><rect x="184" y="8" width="80" height="38" rx="8"/><text class="label" x="224" y="32">Lazada</text></g>
+          <g class="node source"><rect x="272" y="8" width="80" height="38" rx="8"/><text class="label" x="312" y="32">TikTok</text></g>
+
+          <g class="node"><rect x="70" y="126" width="220" height="58" rx="10"/><text class="label" x="180" y="151">Mycloud OMS</text><text class="cap" x="180" y="170">order system</text></g>
+          <g class="node"><rect x="70" y="224" width="220" height="58" rx="10"/><text class="label" x="180" y="249">Cloud Run Jobs</text><text class="cap" x="180" y="268">Python, Docker</text></g>
+          <g class="node"><rect x="70" y="322" width="220" height="58" rx="10"/><text class="label" x="180" y="347">BigQuery</text><text class="cap" x="180" y="366">SQL warehouse</text></g>
+          <g class="node end"><rect x="70" y="420" width="220" height="58" rx="10"/><text class="label" x="180" y="445">Looker Studio</text><text class="cap" x="180" y="464">dashboards</text></g>
+        </svg>
+      </figure>
+    </section>
+  </main>
+</div>
+
+<!-- EDIT: add one real result to each project below (for example how many orders a job handles, or how often it runs). Specific numbers make a portfolio convincing. -->
+<section class="section" id="work">
+  <div class="wrap cols">
+    <h2>Selected work</h2>
+    <div>
+      <article class="project">
+        <h3>Cloud Run pipelines and a sales dashboard</h3>
+        <p>Python pipelines packaged with Docker and deployed as Cloud Run Jobs, loading data into BigQuery. On top sits a Looker Studio dashboard that compares actual sales with targets, fed by a BigQuery materialized view.</p>
+        <p class="tools">Python, Docker, Cloud Run Jobs, BigQuery, Looker Studio</p>
+      </article>
+
+      <article class="project">
+        <h3>Sales reconciliation across channels</h3>
+        <p>A pandas pipeline that checks Shopee, Lazada, TikTok and direct-sale orders against Odoo, including prorated seller discounts. Google Sheets holds the source of truth, and I'm evaluating an Apps Script web app as a shared front end with access control.</p>
+        <p class="tools">Python, pandas, Google Sheets, Apps Script, Odoo</p>
+      </article>
+
+      <article class="project">
+        <h3>Marketplace connections to the order system</h3>
+        <p>API integrations that bring each sales channel into Mycloud OMS, with testing across Lazada, Shopee, TikTok and Shopify so every channel's orders land in one place.</p>
+        <p class="tools">Shopify, Shopee, Lazada, TikTok Shop, Mycloud OMS</p>
+      </article>
+
+      <article class="project">
+        <h3>Odoo ERP after go-live</h3>
+        <p>Coordinating post-launch work with the implementation vendor: tracking bugs and feedback, writing structured handoffs that developers can act on, and scripting bulk product changes through Odoo's XML-RPC API.</p>
+        <p class="tools">Odoo, XML-RPC, Python</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="how">
+  <div class="wrap cols">
+    <h2>How I work</h2>
+    <div>
+      <p class="prose">Most of my job is the space between systems and the people who depend on them. I explain technical limits to accounting, warehouse and branch teams, and I turn their requests into specifications that a vendor, an API or a pipeline can act on.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="toolbox">
+  <div class="wrap cols">
+    <h2>Toolbox</h2>
+    <dl class="toolbox">
+      <dt>Data</dt>
+      <dd>Python, SQL, pandas, BigQuery, Cloud Run Jobs, Docker, Looker Studio, Google Sheets</dd>
+      <dt>Integrations</dt>
+      <dd>APIs, XML-RPC, Shopify, Shopee, Lazada, TikTok Shop, Mycloud OMS</dd>
+      <dt>Business systems</dt>
+      <dd>Odoo ERP</dd>
+    </dl>
+  </div>
+</section>
+
+<section class="section" id="contact">
+  <div class="wrap cols">
+    <h2>Contact</h2>
+    <div>
+      <p class="prose">If you'd like to talk about data work, send me a message.</p>
+      <!-- EDIT: replace the three href values below with your real email, LinkedIn and GitHub links. -->
+      <ul class="contact-links">
+        <li><a href="mailto:your-email@example.com">Email</a></li>
+        <li><a href="https://www.linkedin.com/in/your-profile">LinkedIn</a></li>
+        <li><a href="https://github.com/your-username">GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>© 2026 Kongpop, Bangkok</p>
+  </div>
+</footer>
+</body>
+</html>
